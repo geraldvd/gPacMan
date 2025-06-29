@@ -92,6 +92,12 @@ class Game {
         }
         
         this.dotsRemaining = this.dots.length + this.powerPellets.length;
+        
+        // Debug: Log initial counts
+        console.log(`Level ${this.level} initialized:`);
+        console.log(`- Regular dots: ${this.dots.length}`);
+        console.log(`- Power pellets: ${this.powerPellets.length}`);
+        console.log(`- Total dots remaining: ${this.dotsRemaining}`);
     }
     
     setupEventListeners() {
@@ -205,6 +211,7 @@ class Game {
                 dot.collected = true;
                 this.score += dot.points;
                 this.dotsRemaining--;
+                console.log(`Dot collected! ${this.dotsRemaining} remaining`);
                 this.updateUI();
             }
         }
@@ -216,6 +223,7 @@ class Game {
                 pellet.collected = true;
                 this.score += pellet.points;
                 this.dotsRemaining--;
+                console.log(`Power pellet collected! ${this.dotsRemaining} remaining`);
                 this.activatePowerMode();
                 this.updateUI();
             }

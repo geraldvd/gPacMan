@@ -285,6 +285,7 @@ class Maze {
     
     placePowerPellets() {
         // Find suitable locations for power pellets in each quadrant
+        // Place them in strategic empty locations rather than converting dots
         const quadrants = [
             { startX: 1, endX: Math.floor(this.width / 2), startY: 1, endY: Math.floor(this.height / 2) }, // top-left
             { startX: Math.floor(this.width / 2), endX: this.width - 1, startY: 1, endY: Math.floor(this.height / 2) }, // top-right
@@ -309,20 +310,36 @@ class Maze {
                 { x: quadrant.endX - 2, y: quadrant.startY + 3 },
             ];
             
+            // First try to place in empty spaces
             for (const pos of positions) {
                 if (this.isValidPosition(pos.x, pos.y) && 
-                    this.grid[pos.y][pos.x] === this.CELL_TYPES.DOT) {
+                    this.grid[pos.y][pos.x] === this.CELL_TYPES.EMPTY) {
                     this.grid[pos.y][pos.x] = this.CELL_TYPES.POWER_PELLET;
                     placed = true;
                     break;
                 }
             }
             
-            // If we couldn't find a spot, try any empty space in the quadrant
+            // If no empty spaces, then convert a dot
+            if (!placed) {
+                for (const pos of positions) {
+                    if (this.isValidPosition(pos.x, pos.y) && 
+                        this.grid[pos.y][pos.x] === this.CELL_TYPES.DOT) {
+                        this.grid[pos.y][pos.x] = this.CELL_TYPES.POWER_PELLET;
+                        placed = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Last resort: find any suitable space in the quadrant
             if (!placed) {
                 for (let y = quadrant.startY; y < quadrant.endY && !placed; y++) {
                     for (let x = quadrant.startX; x < quadrant.endX && !placed; x++) {
-                        if (this.grid[y][x] === this.CELL_TYPES.DOT) {
+                        if (this.grid[y][x] === this.CELL_TYPES.EMPTY) {
+                            this.grid[y][x] = this.CELL_TYPES.POWER_PELLET;
+                            placed = true;
+                        } else if (this.grid[y][x] === this.CELL_TYPES.DOT) {
                             this.grid[y][x] = this.CELL_TYPES.POWER_PELLET;
                             placed = true;
                         }
