@@ -267,37 +267,68 @@ class Maze {
     
     
     placeDots() {
-        // Don't place dots on every empty space - use a more sparse pattern for playability
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                if (this.grid[y][x] === this.CELL_TYPES.EMPTY) {
-                    // Don't place dots near start position
-                    const distFromStart = Math.abs(x - this.startPosition.x) + Math.abs(y - this.startPosition.y);
-                    if (distFromStart > 2) {
-                        // Only place dots in a sparse pattern - skip many empty spaces
-                        // Place dots on main corridors and key intersections
-                        const isMainCorridor = (x % 2 === 1 && y % 2 === 1) || // intersection points
-                                             (x % 2 === 1 && y === 1) || // top corridor
-                                             (x % 2 === 1 && y === this.height - 2) || // bottom corridor
-                                             (y % 2 === 1 && x === 1) || // left corridor
-                                             (y % 2 === 1 && x === this.width - 2) || // right corridor
-                                             (y === Math.floor(this.height / 2)); // center horizontal corridor
-                        
-                        if (isMainCorridor || (x % 3 === 0 && y % 3 === 0)) {
-                            this.grid[y][x] = this.CELL_TYPES.DOT;
-                        }
+        // First, find all reachable positions using flood fill from start position
+        const reachablePositions = this.findReachablePositions();
+        
+        // Only place dots in reachable positions
+        for (const pos of reachablePositions) {
+            // Don't place dots near start position
+            const distFromStart = Math.abs(pos.x - this.startPosition.x) + Math.abs(pos.y - this.startPosition.y);
+            if (distFromStart > 2) {
+                // Place dots in a reasonable pattern on reachable corridors
+                const isMainPath = (pos.x % 2 === 1) || (pos.y % 2 === 1) || 
+                                  (pos.y === Math.floor(this.height / 2)) || // center corridor
+                                  (pos.x === 1 || pos.x === this.width - 2) || // side corridors
+                                  (pos.y === 1 || pos.y === this.height - 2); // top/bottom corridors
+                
+                if (isMainPath && (pos.x + pos.y) % 2 === 0) { // Sparse pattern
+                    this.grid[pos.y][pos.x] = this.CELL_TYPES.DOT;
+                }
+            }
+        }
+        
+        // Place power pellets in strategic reachable locations
+        this.placePowerPellets(reachablePositions);
+    }
+    
+    findReachablePositions() {
+        // Use flood fill to find all positions reachable from start
+        const reachable = [];
+        const visited = new Set();
+        const queue = [this.startPosition];
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            const key = `${current.x},${current.y}`;
+            
+            if (visited.has(key)) continue;
+            visited.add(key);
+            
+            if (this.canMoveTo(current.x, current.y)) {
+                reachable.push({ x: current.x, y: current.y });
+                
+                // Add neighbors to queue
+                const neighbors = [
+                    { x: current.x + 1, y: current.y },
+                    { x: current.x - 1, y: current.y },
+                    { x: current.x, y: current.y + 1 },
+                    { x: current.x, y: current.y - 1 }
+                ];
+                
+                for (const neighbor of neighbors) {
+                    if (this.isValidPosition(neighbor.x, neighbor.y) && !visited.has(`${neighbor.x},${neighbor.y}`)) {
+                        queue.push(neighbor);
                     }
                 }
             }
         }
         
-        // Place power pellets in strategic locations (find empty spaces in corners)
-        this.placePowerPellets();
+        console.log(`Found ${reachable.length} reachable positions out of ${this.width * this.height} total`);
+        return reachable;
     }
     
-    placePowerPellets() {
-        // Find suitable locations for power pellets in each quadrant
-        // Place them in strategic empty locations rather than converting dots
+    placePowerPellets(reachablePositions) {
+        // Place power pellets only in reachable positions, one per quadrant
         const quadrants = [
             { startX: 1, endX: Math.floor(this.width / 2), startY: 1, endY: Math.floor(this.height / 2) }, // top-left
             { startX: Math.floor(this.width / 2), endX: this.width - 1, startY: 1, endY: Math.floor(this.height / 2) }, // top-right
@@ -308,35 +339,23 @@ class Maze {
         for (const quadrant of quadrants) {
             let placed = false;
             
-            // Try to find a good spot in the outer areas of each quadrant
-            const positions = [
-                // Try corners first
+            // Find reachable positions in this quadrant
+            const quadrantReachable = reachablePositions.filter(pos => 
+                pos.x >= quadrant.startX && pos.x < quadrant.endX &&
+                pos.y >= quadrant.startY && pos.y < quadrant.endY
+            );
+            
+            // Try corner positions first
+            const preferredPositions = [
                 { x: quadrant.startX + 1, y: quadrant.startY + 1 },
                 { x: quadrant.endX - 2, y: quadrant.startY + 1 },
                 { x: quadrant.startX + 1, y: quadrant.endY - 2 },
                 { x: quadrant.endX - 2, y: quadrant.endY - 2 },
-                // Try along edges
-                { x: quadrant.startX + 3, y: quadrant.startY + 1 },
-                { x: quadrant.startX + 1, y: quadrant.startY + 3 },
-                { x: quadrant.endX - 4, y: quadrant.startY + 1 },
-                { x: quadrant.endX - 2, y: quadrant.startY + 3 },
             ];
             
-            // First try to place in empty spaces
-            for (const pos of positions) {
-                if (this.isValidPosition(pos.x, pos.y) && 
-                    this.grid[pos.y][pos.x] === this.CELL_TYPES.EMPTY) {
-                    this.grid[pos.y][pos.x] = this.CELL_TYPES.POWER_PELLET;
-                    placed = true;
-                    break;
-                }
-            }
-            
-            // If no empty spaces, then convert a dot
-            if (!placed) {
-                for (const pos of positions) {
-                    if (this.isValidPosition(pos.x, pos.y) && 
-                        this.grid[pos.y][pos.x] === this.CELL_TYPES.DOT) {
+            for (const pos of preferredPositions) {
+                if (quadrantReachable.some(rPos => rPos.x === pos.x && rPos.y === pos.y)) {
+                    if (this.grid[pos.y][pos.x] === this.CELL_TYPES.EMPTY) {
                         this.grid[pos.y][pos.x] = this.CELL_TYPES.POWER_PELLET;
                         placed = true;
                         break;
@@ -344,17 +363,13 @@ class Maze {
                 }
             }
             
-            // Last resort: find any suitable space in the quadrant
-            if (!placed) {
-                for (let y = quadrant.startY; y < quadrant.endY && !placed; y++) {
-                    for (let x = quadrant.startX; x < quadrant.endX && !placed; x++) {
-                        if (this.grid[y][x] === this.CELL_TYPES.EMPTY) {
-                            this.grid[y][x] = this.CELL_TYPES.POWER_PELLET;
-                            placed = true;
-                        } else if (this.grid[y][x] === this.CELL_TYPES.DOT) {
-                            this.grid[y][x] = this.CELL_TYPES.POWER_PELLET;
-                            placed = true;
-                        }
+            // If no preferred position, use any reachable empty space in quadrant
+            if (!placed && quadrantReachable.length > 0) {
+                for (const pos of quadrantReachable) {
+                    if (this.grid[pos.y][pos.x] === this.CELL_TYPES.EMPTY) {
+                        this.grid[pos.y][pos.x] = this.CELL_TYPES.POWER_PELLET;
+                        placed = true;
+                        break;
                     }
                 }
             }
