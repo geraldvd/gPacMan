@@ -48,6 +48,10 @@ body {
     color: #4ecdc4;
 }
 
+#dots-value {
+    color: #ffa500;
+}
+
 #game-canvas {
     border: 3px solid #333;
     background-color: #000;

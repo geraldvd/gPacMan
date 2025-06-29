@@ -28,6 +28,7 @@ class Game {
         // Timing
         this.lastTime = 0;
         this.gameSpeed = 1000 / 60; // 60 FPS
+        this.animationTimer = 0;
         
         // Initialize game
         this.init();
@@ -167,6 +168,8 @@ class Game {
     }
     
     update(deltaTime) {
+        this.animationTimer++;
+        
         // Update PacMan
         this.pacman.update(this.maze);
         
@@ -182,8 +185,13 @@ class Game {
         this.updatePowerPellets(deltaTime);
         
         // Check win condition
-        if (this.dotsRemaining === 0) {
+        if (this.dotsRemaining <= 0) {
             this.nextLevel();
+        }
+        
+        // Debug: Log dots remaining occasionally
+        if (this.animationTimer % 300 === 0) { // Every 5 seconds at 60fps
+            console.log(`Dots remaining: ${this.dotsRemaining}`);
         }
     }
     
@@ -213,16 +221,22 @@ class Game {
             }
         }
         
-        // Check ghost collisions
+        // Check ghost collisions - use distance-based detection for better accuracy
         for (const ghost of this.ghosts) {
-            const ghostGrid = Utils.pixelToGrid(ghost.x, ghost.y, this.cellSize);
-            if (ghostGrid.x === pacmanGrid.x && ghostGrid.y === pacmanGrid.y) {
-                if (ghost.isVulnerable) {
+            const distance = Utils.distance(
+                { x: this.pacman.x + this.cellSize / 2, y: this.pacman.y + this.cellSize / 2 },
+                { x: ghost.x + this.cellSize / 2, y: ghost.y + this.cellSize / 2 }
+            );
+            
+            // If they're close enough (within 70% of cell size), consider it a collision
+            if (distance < this.cellSize * 0.7) {
+                if (ghost.isVulnerable && !ghost.isEaten) {
                     ghost.setMode('eaten');
                     this.score += 200;
                     this.updateUI();
-                } else if (!ghost.isEaten) {
+                } else if (!ghost.isEaten && !ghost.isVulnerable) {
                     this.pacmanDied();
+                    return; // Don't check other collisions after death
                 }
             }
         }
@@ -299,10 +313,12 @@ class Game {
         const scoreElement = document.getElementById('score-value');
         const livesElement = document.getElementById('lives-value');
         const levelElement = document.getElementById('level-value');
+        const dotsElement = document.getElementById('dots-value');
         
         if (scoreElement) scoreElement.textContent = this.score;
         if (livesElement) livesElement.textContent = this.lives;
         if (levelElement) levelElement.textContent = this.level;
+        if (dotsElement) dotsElement.textContent = this.dotsRemaining;
     }
     
     render() {
