@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gPacMan</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="game-ui">
+            <div id="score">Score: <span id="score-value">0</span></div>
+            <div id="lives">Lives: <span id="lives-value">3</span></div>
+            <div id="level">Level: <span id="level-value">1</span></div>
+        </div>
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <div id="game-over" class="hidden">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="restart-button">Play Again</button>
+        </div>
+        <div id="game-start" class="hidden">
+            <h1>gPacMan</h1>
+            <p>Use arrow keys to move</p>
+            <button id="start-button">Start Game</button>
+        </div>
+    </div>
+    
+    <script src="src/utils.js"></script>
+    <script src="src/game.js"></script>
+    <script src="src/pacman.js"></script>
+    <script src="src/ghost.js"></script>
+    <script src="src/maze.js"></script>
+    <script src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gPacMan Test Runner</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a1a;
+            color: #fff;
+            margin: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #ffff00;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            background-color: #ffff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #e6e600;
+        }
+        
+        .test-results {
+            background-color: #2a2a2a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-suite {
+            margin-bottom: 20px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .test-suite h3 {
+            color: #4ecdc4;
+            margin-top: 0;
+        }
+        
+        .test-case {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 3px;
+        }
+        
+        .test-pass {
+            background-color: #2d5a2d;
+            color: #90ee90;
+        }
+        
+        .test-fail {
+            background-color: #5a2d2d;
+            color: #ff6b6b;
+        }
+        
+        .test-summary {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .summary-pass {
+            background-color: #2d5a2d;
+            color: #90ee90;
+        }
+        
+        .summary-fail {
+            background-color: #5a2d2d;
+            color: #ff6b6b;
+        }
+        
+        #game-canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>gPacMan Test Suite</h1>
+        
+        <div class="test-controls">
+            <button id="run-tests">Run All Tests</button>
+            <button id="clear-results">Clear Results</button>
+        </div>
+        
+        <div id="test-results" class="test-results">
+            <p>Click "Run All Tests" to start testing...</p>
+        </div>
+        
+        <!-- Hidden canvas for testing -->
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+    </div>
+    
+    <!-- Load game source files -->
+    <script src="../src/utils.js"></script>
+    <script src="../src/maze.js"></script>
+    <script src="../src/pacman.js"></script>
+    <script src="../src/ghost.js"></script>
+    <script src="../src/game.js"></script>
+    
+    <!-- Load test framework and tests -->
+    <script src="test-framework.js"></script>
+    <script src="utils.test.js"></script>
+    <script src="maze.test.js"></script>
+    <script src="pacman.test.js"></script>
+    <script src="ghost.test.js"></script>
+    <script src="game.test.js"></script>
+    
+    <script>
+        document.getElementById('run-tests').addEventListener('click', () => {
+            TestRunner.runAllTests();
+        });
+        
+        document.getElementById('clear-results').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<p>Click "Run All Tests" to start testing...</p>';
+        });
+    </script>
+</body>
+</html>
