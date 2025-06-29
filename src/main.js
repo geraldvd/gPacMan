@@ -93,10 +93,23 @@ class GameManager {
     restartGame() {
         if (this.game) {
             this.game.stop();
+            // Use the existing game's restart method instead of creating new instance
+            this.game.restart();
+            
+            // Reset the game over callback
+            const originalGameOver = this.game.gameOver.bind(this.game);
+            this.game.gameOver = () => {
+                originalGameOver();
+                this.showGameOver();
+            };
+            
+            this.hideGameOver();
+            this.game.start();
+            this.isGameActive = true;
+        } else {
+            // Fallback: create new game if none exists
+            this.startGame();
         }
-        
-        this.hideGameOver();
-        this.startGame();
     }
     
     handleResize() {

@@ -172,9 +172,16 @@ class Game {
     }
     
     restart() {
+        // Reset all game state
         this.score = 0;
         this.lives = 3;
         this.level = 1;
+        this.isRunning = false;
+        this.isPaused = false;
+        this.animationTimer = 0;
+        this.lastTime = 0;
+        
+        // Reinitialize game objects
         this.init();
         this.updateUI();
     }
