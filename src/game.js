@@ -70,6 +70,9 @@ class Game {
         const dotPositions = this.maze.getDotPositions();
         const powerPelletPositions = this.maze.getPowerPelletPositions();
         
+        // Debug: Check what the maze is actually reporting
+        console.log(`Maze reports: ${dotPositions.length} dots, ${powerPelletPositions.length} power pellets`);
+        
         // Create regular dots
         for (const pos of dotPositions) {
             this.dots.push({
@@ -93,10 +96,27 @@ class Game {
         
         this.dotsRemaining = this.dots.length + this.powerPellets.length;
         
+        // Debug: Verify the count matches what's actually collectible
+        let actualDots = 0;
+        let actualPowerPellets = 0;
+        for (const dot of this.dots) {
+            if (!dot.collected) actualDots++;
+        }
+        for (const pellet of this.powerPellets) {
+            if (!pellet.collected) actualPowerPellets++;
+        }
+        
+        // Use the actual count instead of calculated count if there's a mismatch
+        const actualTotal = actualDots + actualPowerPellets;
+        if (actualTotal !== this.dotsRemaining) {
+            console.warn(`Mismatch detected! Calculated: ${this.dotsRemaining}, Actual: ${actualTotal}`);
+            this.dotsRemaining = actualTotal;
+        }
+        
         // Debug: Log initial counts
         console.log(`Level ${this.level} initialized:`);
-        console.log(`- Regular dots: ${this.dots.length}`);
-        console.log(`- Power pellets: ${this.powerPellets.length}`);
+        console.log(`- Regular dots: ${this.dots.length} (${actualDots} uncollected)`);
+        console.log(`- Power pellets: ${this.powerPellets.length} (${actualPowerPellets} uncollected)`);
         console.log(`- Total dots remaining: ${this.dotsRemaining}`);
     }
     
