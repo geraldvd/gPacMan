@@ -267,13 +267,25 @@ class Maze {
     
     
     placeDots() {
+        // Don't place dots on every empty space - use a more sparse pattern for playability
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if (this.grid[y][x] === this.CELL_TYPES.EMPTY) {
                     // Don't place dots near start position
                     const distFromStart = Math.abs(x - this.startPosition.x) + Math.abs(y - this.startPosition.y);
                     if (distFromStart > 2) {
-                        this.grid[y][x] = this.CELL_TYPES.DOT;
+                        // Only place dots in a sparse pattern - skip many empty spaces
+                        // Place dots on main corridors and key intersections
+                        const isMainCorridor = (x % 2 === 1 && y % 2 === 1) || // intersection points
+                                             (x % 2 === 1 && y === 1) || // top corridor
+                                             (x % 2 === 1 && y === this.height - 2) || // bottom corridor
+                                             (y % 2 === 1 && x === 1) || // left corridor
+                                             (y % 2 === 1 && x === this.width - 2) || // right corridor
+                                             (y === Math.floor(this.height / 2)); // center horizontal corridor
+                        
+                        if (isMainCorridor || (x % 3 === 0 && y % 3 === 0)) {
+                            this.grid[y][x] = this.CELL_TYPES.DOT;
+                        }
                     }
                 }
             }
